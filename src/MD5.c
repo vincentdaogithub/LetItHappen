@@ -252,6 +252,17 @@ Message *extractMessage_md5(const char *message, const uint64_t messageLength) {
 }
 
 
+uint64_t getMessageLength_md5(const char *message) {
+    uint64_t length = 0;
+
+    for (uint64_t i = 0; message[i] != '\0'; i++) {
+        length++;
+    }
+
+    return length;
+}
+
+
 /**
  * @brief Digest message and hash it, then return the resulting 128-bit hash to the result
  * 
@@ -259,7 +270,8 @@ Message *extractMessage_md5(const char *message, const uint64_t messageLength) {
  * @param messageLength The message string length
  * @param result The result string to appointed to. Must be allocated with 129 spaces.
  */
-void digest_md5(char *message, uint64_t messageLength, char *result) {
+void digest_md5(const char *message, char *result) {
+    uint64_t messageLength = getMessageLength_md5(message);
     Message *messagePadding = extractMessage_md5(message, messageLength);
     Blocks *blocks = convertMessage_md5(messagePadding);
     Hash *hash = hash_md5(blocks);

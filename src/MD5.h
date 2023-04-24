@@ -10,6 +10,6 @@
  * @param messageLength The message string length
  * @param result The result string to appointed to. Must be allocated with 129 spaces.
  */
-void digest_md5(char* message, uint64_t messageLength, char *result);
+void digest_md5(const char* message, char *result);
 
 #endif  // MD5

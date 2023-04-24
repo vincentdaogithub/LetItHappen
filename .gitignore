@@ -54,6 +54,7 @@ dkms.conf
 # CodeBlocks files
 *.cbp
 *.depend
+*.layout
 
 # VSCode files
 /.vscode/
