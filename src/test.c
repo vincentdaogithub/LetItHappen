@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "MD5.h"
+
 
 int main(int argc, char **argv) {
     char *result = calloc(129, sizeof(char));
