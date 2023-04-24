@@ -3,29 +3,45 @@
 #include <stdint.h>
 #include "MD5.h"
 
-#define A_MD5 0x67452301
-#define B_MD5 0xefcdab89
-#define C_MD5 0x98badcfe
-#define D_MD5 0x10325476
+#define a0_md5 0x67452301
+#define b0_md5 0xefcdab89
+#define c0_md5 0x98badcfe
+#define d0_md5 0x10325476
 
 
-uint32_t S1[4] = {
+const int z1_md5[16] = {
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+};
+
+const int z2_md5[16] = {
+    1, 6, 11, 0, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12
+};
+
+const int z3_md5[16] = {
+    5, 8, 11, 14, 1, 4, 7, 10, 13, 0, 3, 6, 9, 12, 15, 2
+};
+
+const int z4_md5[16] = {
+    0, 7, 14, 5, 12, 3, 10, 1, 8, 15, 6, 13, 4, 11, 2, 9
+};
+
+const int s1_md5[4] = {
     7, 12, 17, 22
 };
 
-uint32_t S2[4] = {
+const int s2_md5[4] = {
     5, 9, 14, 20
 };
 
-uint32_t S3[4] = {
+const int s3_md5[4] = {
     4, 11, 16, 23
 };
 
-uint32_t S4[4] = {
+const int s4_md5[4] = {
     6, 10, 15, 21
 };
 
-uint32_t K[64] = {
+const uint32_t y_md5[64] = {
     0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
     0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
     0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,
@@ -67,31 +83,31 @@ typedef struct Hash {
 } Hash;
 
 
-uint32_t F(uint32_t B, uint32_t C, uint32_t D) {
+uint32_t f_md5(uint32_t B, uint32_t C, uint32_t D) {
     return (B & C) | (~B & D);
 }
 
-uint32_t G(uint32_t B, uint32_t C, uint32_t D) {
+uint32_t g_md5(uint32_t B, uint32_t C, uint32_t D) {
     return (B & D) | (C & ~D);
 }
 
-uint32_t H(uint32_t B, uint32_t C, uint32_t D) {
+uint32_t h_md5(uint32_t B, uint32_t C, uint32_t D) {
     return B ^ C ^ D;
 }
 
-uint32_t I(uint32_t B, uint32_t C, uint32_t D) {
+uint32_t i_md5(uint32_t B, uint32_t C, uint32_t D) {
     return C ^ (B | ~D);
 }
 
-uint32_t rotateLeft(uint32_t num, int count) {
+uint32_t rotateLeft_md5(uint32_t num, int count) {
     return (num << count) | (num >> (32 - count));
 }
 
 
-void FF(uint32_t *a, uint32_t *b, uint32_t *c, uint32_t *d, Block block) {
+void ff_md5(uint32_t *a, uint32_t *b, uint32_t *c, uint32_t *d, Block block_MD5) {
     for (int i = 0; i < 16; i++) {
-        uint32_t result = *a + F(*b, *c, *d) + block.data[i] + K[i];
-        result = *b + rotateLeft(result, S1[i % 4]);
+        uint32_t result = *a + f_md5(*b, *c, *d) + block_MD5.data[z1_md5[i]] + y_md5[i];
+        result = *b + rotateLeft_md5(result, s1_md5[i % 4]);
         *a = *d;
         *d = *c;
         *c = *b;
@@ -100,55 +116,43 @@ void FF(uint32_t *a, uint32_t *b, uint32_t *c, uint32_t *d, Block block) {
 }
 
 
-void GG(uint32_t *a, uint32_t *b, uint32_t *c, uint32_t *d, Block block) {
-    int index = 1;
-
+void gg_md5(uint32_t *a, uint32_t *b, uint32_t *c, uint32_t *d, Block block_MD5) {
     for (int i = 0; i < 16; i++) {
-        uint32_t result = *a + G(*b, *c, *d) + block.data[index] + K[i + 16];
-        result = *b + rotateLeft(result, S2[i % 4]);
+        uint32_t result = *a + g_md5(*b, *c, *d) + block_MD5.data[z2_md5[i]] + y_md5[i + 16];
+        result = *b + rotateLeft_md5(result, s2_md5[i % 4]);
         *a = *d;
         *d = *c;
         *c = *b;
         *b = result;
-
-        index = (index + 5) % 16;
     }
 }
 
 
-void HH(uint32_t *a, uint32_t *b, uint32_t *c, uint32_t *d, Block block) {
-    int index = 5;
-
+void hh_md5(uint32_t *a, uint32_t *b, uint32_t *c, uint32_t *d, Block block_MD5) {
     for (int i = 0; i < 16; i++) {
-        uint32_t result = *a + H(*b, *c, *d) + block.data[index] + K[i + 32];
-        result = *b + rotateLeft(result, S3[i % 4]);
+        uint32_t result = *a + h_md5(*b, *c, *d) + block_MD5.data[z3_md5[i]] + y_md5[i + 32];
+        result = *b + rotateLeft_md5(result, s3_md5[i % 4]);
         *a = *d;
         *d = *c;
         *c = *b;
         *b = result;
-
-        index = (index + 3) % 16;
     }
 }
 
 
-void II(uint32_t *a, uint32_t *b, uint32_t *c, uint32_t *d, Block block) {
-    int index = 0;
-
+void ii_md5(uint32_t *a, uint32_t *b, uint32_t *c, uint32_t *d, Block block_MD5) {
     for (int i = 0; i < 16; i++) {
-        uint32_t result = *a + I(*b, *c, *d) + block.data[index] + K[i + 48];
-        result = *b + rotateLeft(result, S4[i % 4]);
+        uint32_t result = *a + i_md5(*b, *c, *d) + block_MD5.data[z4_md5[i]] + y_md5[i + 48];
+        result = *b + rotateLeft_md5(result, s4_md5[i % 4]);
         *a = *d;
         *d = *c;
         *c = *b;
         *b = result;
-
-        index = (index + 7) % 16;
     }
 }
 
 
-void extractHash(Hash *hash, char *result) {
+void extractHash_md5(Hash *hash, char *result) {
     uint32_t a = 0, b = 0, c = 0, d = 0;
     a = (hash->A << 24) | ((hash->A << 8) & 0x00ff0000) | ((hash->A >> 8) & 0x0000ff00) | (hash->A >> 24);
     b = (hash->B << 24) | ((hash->B << 8) & 0x00ff0000) | ((hash->B >> 8) & 0x0000ff00) | (hash->B >> 24);
@@ -159,68 +163,54 @@ void extractHash(Hash *hash, char *result) {
 }
 
 
-Hash *hashMD5(Blocks *blocks) {
-    uint32_t *a = calloc(1, sizeof(uint32_t));
-    *a = A_MD5;
-
-    uint32_t *b = calloc(1, sizeof(uint32_t));
-    *b = B_MD5;
-
-    uint32_t *c = calloc(1, sizeof(uint32_t));
-    *c = C_MD5;
-
-    uint32_t *d = calloc(1, sizeof(uint32_t));
-    *d = D_MD5;
+Hash *hash_md5(Blocks *blocks) {
+    uint32_t a = a0_md5, b = b0_md5, c = c0_md5, d = d0_md5;
 
     for (int i = 0; i < blocks->size; i++) {
-        FF(a, b, c, d, blocks->blocks[i]);
-        GG(a, b, c, d, blocks->blocks[i]);
-        HH(a, b, c, d, blocks->blocks[i]);
-        II(a, b, c, d, blocks->blocks[i]);
+        ff_md5(&a, &b, &c, &d, blocks->blocks[i]);
+        gg_md5(&a, &b, &c, &d, blocks->blocks[i]);
+        hh_md5(&a, &b, &c, &d, blocks->blocks[i]);
+        ii_md5(&a, &b, &c, &d, blocks->blocks[i]);
     }
 
     Hash *hash = calloc(1, sizeof(Hash));
-    hash->A = *a + A_MD5;
-    hash->B = *b + B_MD5;
-    hash->C = *c + C_MD5;
-    hash->D = *d + D_MD5;
+    hash->A = a + a0_md5;
+    hash->B = b + b0_md5;
+    hash->C = c + c0_md5;
+    hash->D = d + d0_md5;
 
-    free(a);
-    free(b);
-    free(c);
-    free(d);
     return hash;
 }
 
 
-Blocks *convertMessage(const Message *message) {
+Blocks *convertMessage_md5(const Message *message) {
     Blocks *blocks = calloc(1, sizeof(Blocks));
     blocks->size = message->size / 64;
     blocks->blocks = calloc(blocks->size, sizeof(Block));
 
     for (int i = 0; i < blocks->size; i++) {
-        Block block;
+        Block block_MD5;
         uint32_t index = i * 64;
 
         for (int j = 0; j < 16; j++) {
             uint32_t word = 0;
 
-            for (int k = 0; k < 4; k++) {
+            for (int k_MD5 = 0; k_MD5 < 4; k_MD5++) {
                 uint32_t tmp = message->message[index++];
-                word |= tmp << (k * 8);
+                word |= tmp << (k_MD5 * 8);
             }
 
-            block.data[j] = word;
+            block_MD5.data[j] = word;
         }
 
-        blocks->blocks[i] = block;
+        blocks->blocks[i] = block_MD5;
     }
 
     return blocks;
 }
 
 
-Message *extractMessage(const char *message, const uint64_t messageLength) {
+Message *extractMessage_md5(const char *message, const uint64_t messageLength) {
     uint8_t *result = calloc(messageLength, sizeof(uint8_t));
     uint64_t resultSize = messageLength;
 
@@ -269,12 +259,12 @@ Message *extractMessage(const char *message, const uint64_t messageLength) {
  * @param messageLength The message string length
  * @param result The result string to appointed to. Must be allocated with 129 spaces.
  */
-void digestMD5(char *message, uint64_t messageLength, char *result) {
-    Message *messagePadding = extractMessage(message, messageLength);
-    Blocks *blocks = convertMessage(messagePadding);
-    Hash *hash = hashMD5(blocks);
+void digest_md5(char *message, uint64_t messageLength, char *result) {
+    Message *messagePadding = extractMessage_md5(message, messageLength);
+    Blocks *blocks = convertMessage_md5(messagePadding);
+    Hash *hash = hash_md5(blocks);
 
-    extractHash(hash, result);
+    extractHash_md5(hash, result);
     free(messagePadding);
     free(blocks);
     free(hash);
