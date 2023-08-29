@@ -1,2 +1,2 @@
 # LetItHappen
- Collection of hash algorithm created by me.
+MD5 hash implementation. Me was bored so me spend time (LOTS) on this.
